@@ -62,6 +62,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
+    implementation(libs.androidx.constraintlayout.compose)
+
     implementation(libs.androidx.activity.ktx)
     implementation (libs.androidx.lifecycle.extensions)
     implementation (libs.androidx.lifecycle.runtime.ktx)
@@ -73,6 +75,7 @@ dependencies {
 
     //ktor
     implementation(libs.ktor.client.core)
+    implementation(libs.androidx.navigation.compose)
     testImplementation(libs.ktor.server.test.host.v2312)
     testImplementation(libs.ktor.server.netty)
     implementation(libs.ktor.client.serialization.jvm)
