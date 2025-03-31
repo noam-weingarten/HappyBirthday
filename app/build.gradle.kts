@@ -76,6 +76,7 @@ dependencies {
     //ktor
     implementation(libs.ktor.client.core)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.compose.material.core)
     testImplementation(libs.ktor.server.test.host.v2312)
     testImplementation(libs.ktor.server.netty)
     implementation(libs.ktor.client.serialization.jvm)

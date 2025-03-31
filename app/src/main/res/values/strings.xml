@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Happy Birthday</string>
+    <string name="name_today_is">Today %1$s is</string>
+    <string name="age_old">%1$s Old!</string>
+    <string name="enter_ip_address_and_port">Enter IP address and port</string>
+    <string name="connect">connect</string>
+    <string name="happybirthday">HappyBirthday</string>
 </resources>
