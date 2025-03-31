@@ -1,6 +1,5 @@
 package com.noam.happybirthday.model
 
-import kotlinx.serialization.Serializable
+import java.time.Period
 
-@Serializable
-data class BirthdayWish(val name: String, val dob: Long, val theme: String)
+data class BirthdayWish(val name: String, val dob: Period, val theme: String)

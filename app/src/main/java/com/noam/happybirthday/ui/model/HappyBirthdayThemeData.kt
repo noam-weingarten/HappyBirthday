@@ -1,4 +1,4 @@
-package com.noam.happybirthday.view
+package com.noam.happybirthday.ui.model
 
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
