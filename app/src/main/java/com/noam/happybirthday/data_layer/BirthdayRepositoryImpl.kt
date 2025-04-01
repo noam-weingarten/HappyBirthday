@@ -1,14 +1,13 @@
 package com.noam.happybirthday.data_layer
 
-import android.util.Log
 import com.noam.happybirthday.model.BirthdayWish
 import com.noam.happybirthday.remote.WebSocketClient
 import com.noam.happybirthday.remote.WebSocketListener
 import com.noam.happybirthday.remote.WebSocketListenerEvent
-import kotlinx.coroutines.channels.awaitClose
+import com.noam.happybirthday.utils.ConnectionState
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import java.time.Instant
@@ -17,28 +16,31 @@ import java.time.Period
 
 class BirthdayRepositoryImpl(private val webSocketClient: WebSocketClient) : BirthdayRepository {
 
-    private var connectionState: Boolean = false
-    private val webSocketListenerEvent = MutableSharedFlow<WebSocketListenerEvent>()
+    private val _connectionState: MutableStateFlow<ConnectionState> = MutableStateFlow(ConnectionState.DISCONNECTED)
+    override val connectionState: StateFlow<ConnectionState>
+        get() = _connectionState
 
-    private fun actionEvents() = callbackFlow {
-        val listener = object : WebSocketListener {
-            override fun onConnected() {
-                trySend(WebSocketListenerEvent.Connected())
-            }
+    private val eventsFlow: MutableStateFlow<WebSocketListenerEvent> = MutableStateFlow(WebSocketListenerEvent.Disconnected)
 
-            override fun onMessage(message: String) {
-                trySend(WebSocketListenerEvent.MessageReceived(Json.decodeFromString(message)))
-            }
-
-            override fun onDisconnected() {
-                trySend(WebSocketListenerEvent.Disconnected())
-            }
+    private val eventsListener = object : WebSocketListener {
+        override fun onConnected() {
+            eventsFlow.value = (WebSocketListenerEvent.Connected)
         }
 
-        registerListener(listener)
+        override fun onMessage(message: String) {
+            eventsFlow.value = (WebSocketListenerEvent.MessageReceived(Json.decodeFromString(message)))
+        }
 
-        awaitClose {
-            unregisterListener(listener)
+        override fun onDisconnected() {
+            eventsFlow.value = (WebSocketListenerEvent.Disconnected)
+        }
+
+        override fun onConnecting() {
+            eventsFlow.value = (WebSocketListenerEvent.Connecting)
+        }
+
+        override fun onError(error: Throwable) {
+            eventsFlow.value = (WebSocketListenerEvent.Error(error))
         }
     }
 
@@ -51,24 +53,23 @@ class BirthdayRepositoryImpl(private val webSocketClient: WebSocketClient) : Bir
     }
 
     override var latestBirthdayWish: Flow<BirthdayWish> = flow {
-            actionEvents().collect { event ->
-                Log.d("Flow", "received event = ${event}")
-                when(event) {
-                    is WebSocketListenerEvent.Connected -> {}
-                    is WebSocketListenerEvent.Disconnected -> {}
-                    is WebSocketListenerEvent.MessageReceived -> {
-                        val period = getAgeInMonths(event.birthdayWishApiModel.dob)
-                        Log.d("Flow", "emitting the birthdayWishApiModel ${event.birthdayWishApiModel}")
-                        val birthdayWish = BirthdayWish(
-                            event.birthdayWishApiModel.name,
-                            period,
-                            event.birthdayWishApiModel.theme,
-                        )
-                        Log.d("Flow", "emitting the birthdayWish ${birthdayWish}")
-                        emit(birthdayWish)
-                    }
+        eventsFlow.collect { event ->
+            when(event) {
+                is WebSocketListenerEvent.Connecting -> { _connectionState.value = ConnectionState.CONNECTING }
+                is WebSocketListenerEvent.Connected -> { _connectionState.value = ConnectionState.CONNECTED }
+                is WebSocketListenerEvent.Disconnected -> { _connectionState.value = ConnectionState.DISCONNECTED }
+                is WebSocketListenerEvent.Error -> { _connectionState.value = ConnectionState.ERROR }
+                is WebSocketListenerEvent.MessageReceived -> {
+                    val period = getAgeInMonths(event.birthdayWishApiModel.dob)
+                    val birthdayWish = BirthdayWish(
+                        event.birthdayWishApiModel.name,
+                        period,
+                        event.birthdayWishApiModel.theme,
+                    )
+                    emit(birthdayWish)
                 }
             }
+        }
     }
 
     private fun getAgeInMonths(timestamp: Long): Period {
@@ -78,13 +79,12 @@ class BirthdayRepositoryImpl(private val webSocketClient: WebSocketClient) : Bir
         val period = Period.between(
             localDateBirth, currentDate
         )
-        val months = period.toTotalMonths()
-        Log.d("TAG", "getAgeInMonths: localDateBirth = $localDateBirth and currentDate = $currentDate, months = $months")
         return period
     }
 
     private fun setUpWebSocketClient(ipAddress: String) {
         webSocketClient.setUrl(ipAddress)
+        registerListener(eventsListener)
     }
 
     override fun connectToServer(ipAddress: String) {
@@ -93,6 +93,7 @@ class BirthdayRepositoryImpl(private val webSocketClient: WebSocketClient) : Bir
     }
 
     override fun disconnectFromServer() {
+        unregisterListener(eventsListener)
         webSocketClient.disconnect()
     }
 }

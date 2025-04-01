@@ -3,7 +3,9 @@ package com.noam.happybirthday.remote
 import com.noam.happybirthday.model.BirthdayWishApiModel
 
 sealed interface WebSocketListenerEvent {
-    class Connected : WebSocketListenerEvent
+    data object Connected : WebSocketListenerEvent
     class MessageReceived(val birthdayWishApiModel: BirthdayWishApiModel): WebSocketListenerEvent
-    class Disconnected: WebSocketListenerEvent
+    data object Disconnected : WebSocketListenerEvent
+    data object Connecting : WebSocketListenerEvent
+    class Error(val error: Throwable): WebSocketListenerEvent
 }
