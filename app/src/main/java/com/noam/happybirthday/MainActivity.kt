@@ -12,20 +12,22 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.noam.happybirthday.ui.model.BirthdayUiState
 import com.noam.happybirthday.ui.theme.HappyBirthdayTheme
 import com.noam.happybirthday.view.HappyBirthday
 import com.noam.happybirthday.view.HomeScreen
+import com.noam.happybirthday.view.ImageSelectionScreen
 import com.noam.happybirthday.view.Navigator
 import com.noam.happybirthday.view.Screens
 import com.noam.happybirthday.view_model.BirthdayViewModel
+import com.noam.happybirthday.view_model.ImageViewModel
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: BirthdayViewModel by viewModel()
+    private val birthdayViewModel: BirthdayViewModel by viewModel()
+    private val imageViewModel: ImageViewModel by viewModel()
     private val navigator: Navigator by inject<Navigator>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,23 +43,17 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 NavHost(navController = navController, startDestination = navigator.destination.collectAsState().value.route) {
-                    composable(route = Screens.HomeScreen.route){ HomeScreen(navController, ::setUpConnection) }
-                    composable(route = Screens.HappyBirthday.route){ HappyBirthday(navController, viewModel) }
+                    composable(route = Screens.HomeScreen.route){ HomeScreen(::setUpConnection, birthdayViewModel) }
+                    composable(route = Screens.HappyBirthday.route){ HappyBirthday(navController, birthdayViewModel) }
+                    composable(route = Screens.LoadImage.route){ ImageSelectionScreen(navController, viewModel = imageViewModel) }
                 }
             }
         }
-        viewModel.birthdayWishObservable.observe(this) {
-            openBirthdayScreen(it)
-        }
-    }
-
-    private fun openBirthdayScreen(it: BirthdayUiState) {
-        navigator.navigate(Screens.HappyBirthday)
     }
 
     fun setUpConnection(url: String) {
         hideKeyboard()
-        viewModel.connectToServer(url)
+        birthdayViewModel.connectToServer(url)
     }
 
     private fun hideKeyboard() {

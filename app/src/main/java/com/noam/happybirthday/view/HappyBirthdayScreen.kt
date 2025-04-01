@@ -5,22 +5,30 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.paint
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
@@ -50,6 +58,13 @@ import com.noam.happybirthday.view_model.BirthdayViewModel
 @Composable
 fun HappyBirthday(navController: NavController, viewModel: BirthdayViewModel) {
     val birthdayUiState by viewModel.uiState.collectAsState()
+    val bitmap = remember {
+        mutableStateOf<ImageBitmap?>(null)
+    }
+    if (birthdayUiState.babyImage.height > 1 && birthdayUiState.babyImage.width > 1) {
+        bitmap.value = birthdayUiState.babyImage
+    }
+
     Scaffold(modifier = Modifier
         .fillMaxSize()) { innerPadding ->
         ConstraintLayout(modifier = Modifier
@@ -65,10 +80,7 @@ fun HappyBirthday(navController: NavController, viewModel: BirthdayViewModel) {
                     bottom.linkTo(babyImageAndLogo.top, margin = 15.dp)
                 },
                 name = birthdayUiState.name,
-                ageText = when (birthdayUiState.dateOfBirthData.ageTextType) {
-                    AgeTextType.YEARS -> "Year"
-                    AgeTextType.MONTHS -> "Month"
-                },
+                ageText = birthdayUiState.dateOfBirthData.ageTextType.value,
                 ageDrawable = birthdayUiState.dateOfBirthData.numberOfAgeDrawable
             )
             BabyImageWithCameraAt45Angle(
@@ -77,12 +89,15 @@ fun HappyBirthday(navController: NavController, viewModel: BirthdayViewModel) {
                     end.linkTo(parent.end, margin = 50.dp)
                     bottom.linkTo(logo.top, margin = 15.dp)
                 },
+                babyImage = bitmap.value,
+                borderDrawableRes = birthdayUiState.themeData.babyCircleBorderDrawable,
                 centerDrawableRes = birthdayUiState.themeData.babyCircleDrawable,
                 cameraDrawableRes = birthdayUiState.themeData.cameraDrawable,
                 cameraDrawableOnClick = {
                     Log.d("Camera", "Clicked on the camera button")
-                    // Handle camera click
+                    navController.navigate(Screens.LoadImage.route)
                 }
+
             )
             Image(
                 painterResource(id = birthdayUiState.themeData.backgroundDrawable),
@@ -106,7 +121,6 @@ fun HappyBirthday(navController: NavController, viewModel: BirthdayViewModel) {
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
                         bottom.linkTo(parent.bottom, margin = 140.dp)
-//                    linkTo(top = babyImageAndLogo.bottom, bottom = parent.bottom, bottomMargin = 140.dp, bias = 1f)
                     }
                     .layoutId("logo"))
         }
@@ -115,7 +129,6 @@ fun HappyBirthday(navController: NavController, viewModel: BirthdayViewModel) {
 
 @Composable
 fun HappyBirthdayConstraintLayoutFinal(navController: NavController) {
-    //fun HappyBirthday(navController: NavController, viewModel: BirthdayViewModel) {
     Scaffold(contentWindowInsets = WindowInsets.systemBars ,modifier = Modifier
         .fillMaxSize()
         .windowInsetsPadding(WindowInsets.systemBars)) { innerPadding ->
@@ -130,7 +143,6 @@ fun HappyBirthdayConstraintLayoutFinal(navController: NavController) {
                     end.linkTo(parent.end)
                     top.linkTo(parent.top, margin = 20.dp)
                     bottom.linkTo(babyImageAndLogo.top, margin = 15.dp)
-//                    linkTo(top = parent.top, bottom = babyImageAndLogo.top, bias = 0.5f)
                 }
             )
             BabyImageWithCameraAt45Angle(
@@ -322,20 +334,36 @@ fun TitleAndAgeText(modifier: Modifier) {
 }
 
 @Composable
-fun BabyImageWithCameraAt45Angle(modifier: Modifier, @DrawableRes centerDrawableRes: Int, @DrawableRes cameraDrawableRes: Int, cameraDrawableOnClick: () -> Unit) {
+fun BabyImageWithCameraAt45Angle(modifier: Modifier, babyImage: ImageBitmap?, @DrawableRes borderDrawableRes: Int, @DrawableRes centerDrawableRes: Int, @DrawableRes cameraDrawableRes: Int, cameraDrawableOnClick: () -> Unit) {
     Circular(
         modifier = modifier,
         overrideRadius = null,
         startAngle = { 45f },
         center = {
-            Image(
-                painterResource(id = centerDrawableRes),
-                contentDescription = "",
-                contentScale = ContentScale.FillBounds, // or some other scale
-                modifier = Modifier
-                    .height(IntrinsicSize.Max)
-                    .width(IntrinsicSize.Max)
-            )
+            if (babyImage != null) {
+                Box(
+                    modifier = modifier
+                        .clip(CircleShape)
+                        .paint(painterResource(borderDrawableRes))
+                ) {
+                    Image(
+                        modifier = Modifier.size(200.dp)
+                            .clip(CircleShape).align(Alignment.Center),
+                        bitmap = babyImage,
+                        contentScale = ContentScale.Crop,
+                        contentDescription = null
+                    )
+                }
+            } else {
+                Image(
+                    painterResource(id = centerDrawableRes),
+                    contentDescription = "",
+                    contentScale = ContentScale.FillBounds, // or some other scale
+                    modifier = Modifier
+                        .height(IntrinsicSize.Max)
+                        .width(IntrinsicSize.Max)
+                )
+            }
         }
     ) {
         Image(

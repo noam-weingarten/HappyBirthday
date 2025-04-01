@@ -29,6 +29,8 @@ data class DateOfBirthData(
     }}
 
 enum class AgeTextType(val value: String) {
-    MONTHS("Month"),
-    YEARS("Year"),
+    MONTH("Month"),
+    MONTHS("Months"),
+    YEAR("Year"),
+    YEARS("Years"),
 }

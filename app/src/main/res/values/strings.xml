@@ -4,5 +4,11 @@
     <string name="age_old">%1$s Old!</string>
     <string name="enter_ip_address_and_port">Enter IP address and port</string>
     <string name="connect">connect</string>
-    <string name="happybirthday">HappyBirthday</string>
+    <string name="happy_birthday">HappyBirthday</string>
+    <string name="error_connecting">Error Connecting</string>
+    <string name="there_was_an_error_attempting_to_connect_to_websocket_check_the_ip_entered_is_correct_and_try_again">There was an error attempting to connect to Websocket. \nCheck the Ip entered is correct, and try again.</string>
+    <string name="use_camera">Use Camera</string>
+    <string name="use_gallery">Use Gallery</string>
+    <string name="selected_picture">Selected Picture</string>
+    <string name="looks_good">Looks good!</string>
 </resources>
