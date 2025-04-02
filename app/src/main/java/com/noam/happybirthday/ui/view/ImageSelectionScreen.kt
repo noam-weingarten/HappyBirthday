@@ -1,4 +1,4 @@
-package com.noam.happybirthday.view
+package com.noam.happybirthday.ui.view
 
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -42,10 +42,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.noam.happybirthday.R
 import com.noam.happybirthday.data_layer.BabyImageRepositoryImpl
+import com.noam.happybirthday.ui.model.ImageIntent
+import com.noam.happybirthday.ui.model.ImageViewState
 import com.noam.happybirthday.ui.theme.HappyBirthdayTheme
-import com.noam.happybirthday.view_model.ImageViewState
 import com.noam.happybirthday.view_model.ImageViewModel
-import com.noam.happybirthday.view_model.Intent
 import kotlinx.coroutines.Dispatchers
 
 
@@ -57,24 +57,24 @@ fun ImageSelectionScreen(navController: NavController, modifier: Modifier = Modi
 
     val pickImageFromAlbumLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { url ->
-            viewModel.onReceive(Intent.OnFinishPickingImageWith(currentContext, url))
+            viewModel.onReceive(ImageIntent.OnFinishPickingImageWith(currentContext, url))
         }
 
     val cameraLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { isImageSaved ->
             if (isImageSaved) {
-                viewModel.onReceive(Intent.OnImageSavedWith(currentContext))
+                viewModel.onReceive(ImageIntent.OnImageSavedWith(currentContext))
             } else {
-                viewModel.onReceive(Intent.OnImageSavingCanceled)
+                viewModel.onReceive(ImageIntent.OnImageSavingCanceled)
             }
         }
 
     val permissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { permissionGranted ->
             if (permissionGranted) {
-                viewModel.onReceive(Intent.OnPermissionGrantedWith(currentContext))
+                viewModel.onReceive(ImageIntent.OnPermissionGrantedWith(currentContext))
             } else {
-                viewModel.onReceive(Intent.OnPermissionDenied)
+                viewModel.onReceive(ImageIntent.OnPermissionDenied)
             }
         }
 

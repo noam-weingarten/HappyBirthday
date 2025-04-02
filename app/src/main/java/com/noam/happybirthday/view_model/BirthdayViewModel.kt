@@ -10,8 +10,8 @@ import com.noam.happybirthday.ui.model.BirthdayUiState
 import com.noam.happybirthday.ui.model.DateOfBirthData
 import com.noam.happybirthday.ui.model.HappyBirthdayThemeData
 import com.noam.happybirthday.utils.ConnectionState
-import com.noam.happybirthday.view.Navigator
-import com.noam.happybirthday.view.Screens
+import com.noam.happybirthday.ui.view.Navigator
+import com.noam.happybirthday.ui.view.Screens
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

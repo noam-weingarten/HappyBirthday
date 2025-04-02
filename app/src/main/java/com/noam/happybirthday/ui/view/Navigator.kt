@@ -1,4 +1,4 @@
-package com.noam.happybirthday.view
+package com.noam.happybirthday.ui.view
 
 import kotlinx.coroutines.flow.MutableStateFlow
 

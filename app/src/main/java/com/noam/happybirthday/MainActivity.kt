@@ -13,11 +13,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.noam.happybirthday.ui.theme.HappyBirthdayTheme
-import com.noam.happybirthday.view.HappyBirthday
-import com.noam.happybirthday.view.HomeScreen
-import com.noam.happybirthday.view.ImageSelectionScreen
-import com.noam.happybirthday.view.Navigator
-import com.noam.happybirthday.view.Screens
+import com.noam.happybirthday.ui.view.HappyBirthday
+import com.noam.happybirthday.ui.view.HomeScreen
+import com.noam.happybirthday.ui.view.ImageSelectionScreen
+import com.noam.happybirthday.ui.view.Navigator
+import com.noam.happybirthday.ui.view.Screens
 import com.noam.happybirthday.view_model.BirthdayViewModel
 import com.noam.happybirthday.view_model.ImageViewModel
 import org.koin.android.ext.android.inject

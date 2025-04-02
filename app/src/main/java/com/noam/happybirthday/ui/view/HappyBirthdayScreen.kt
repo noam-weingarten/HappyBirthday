@@ -1,4 +1,4 @@
-package com.noam.happybirthday.view
+package com.noam.happybirthday.ui.view
 
 import android.util.Log
 import androidx.annotation.DrawableRes
@@ -8,14 +8,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -32,6 +29,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -50,7 +48,9 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.noam.happybirthday.R
-import com.noam.happybirthday.ui.model.AgeTextType
+import com.noam.happybirthday.data_layer.BabyImageRepositoryImpl
+import com.noam.happybirthday.data_layer.BirthdayRepositoryImpl
+import com.noam.happybirthday.remote.WebSocketClient
 import com.noam.happybirthday.ui.theme.HappyBirthdayTheme
 import com.noam.happybirthday.utils.circularMeasurePolicy
 import com.noam.happybirthday.view_model.BirthdayViewModel
@@ -128,60 +128,6 @@ fun HappyBirthday(navController: NavController, viewModel: BirthdayViewModel) {
 }
 
 @Composable
-fun HappyBirthdayConstraintLayoutFinal(navController: NavController) {
-    Scaffold(contentWindowInsets = WindowInsets.systemBars ,modifier = Modifier
-        .fillMaxSize()
-        .windowInsetsPadding(WindowInsets.systemBars)) { innerPadding ->
-        ConstraintLayout(modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)
-            .background(color = colorResource(R.color.pelican_blue))) {
-            val (backgroundImage, titleAndAge, babyImageAndLogo, logo) = createRefs()
-            TitleAndAgeText(
-                modifier = Modifier.constrainAs(titleAndAge) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(parent.top, margin = 20.dp)
-                    bottom.linkTo(babyImageAndLogo.top, margin = 15.dp)
-                }
-            )
-            BabyImageWithCameraAt45Angle(
-                modifier = Modifier.constrainAs(babyImageAndLogo) {
-                    start.linkTo(parent.start, margin = 50.dp)
-                    end.linkTo(parent.end, margin = 50.dp)
-                    bottom.linkTo(logo.top, margin = 15.dp)
-                }
-            )
-            Image(
-                painterResource(id = R.drawable.bg_pelican),
-                contentDescription = "",
-                contentScale = ContentScale.FillBounds, // or some other scale
-                modifier = Modifier
-                    .constrainAs(backgroundImage) {
-                        width = Dimension.matchParent
-                        height = Dimension.matchParent
-                        bottom.linkTo(parent.bottom)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    }
-                    .layoutId("backgroundImage")
-            )
-            Image(
-                painterResource(id = R.drawable.nanit),
-                contentDescription = "",
-                modifier = Modifier
-                    .constrainAs(logo) {
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                        bottom.linkTo(parent.bottom, margin = 140.dp)
-//                    linkTo(top = babyImageAndLogo.bottom, bottom = parent.bottom, bottomMargin = 140.dp, bias = 1f)
-                    }
-                    .layoutId("logo"))
-        }
-    }
-}
-
-@Composable
 fun TextTitle(modifier: Modifier, fontSize: TextUnit = 21.sp, text: String = "") {
     Row(modifier = modifier
         .width(IntrinsicSize.Max)
@@ -213,35 +159,6 @@ fun AgeSquare(modifier: Modifier, @DrawableRes ageDrawable: Int) {
         )
         Image(
             painterResource(ageDrawable),
-            contentDescription = "",
-            contentScale = ContentScale.FillBounds, // or some other scale
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 22.dp, end = 22.dp)
-        )
-        Image(
-            painterResource(R.drawable.right_swirls),
-            contentDescription = "",
-            contentScale = ContentScale.FillBounds, // or some other scale
-            modifier = Modifier.layoutId("right_swirls"),
-        )
-    }
-}
-
-@Composable
-fun AgeSquare(modifier: Modifier) {
-    Row(modifier = modifier
-        .width(IntrinsicSize.Max)
-        .height(IntrinsicSize.Max),
-        verticalAlignment = Alignment.CenterVertically) {
-        Image(
-            painterResource(R.drawable.left_swirls),
-            contentDescription = "",
-            contentScale = ContentScale.FillBounds, // or some other scale
-            modifier = Modifier.layoutId("left_swirls")
-        )
-        Image(
-            painterResource(R.drawable.age_1),
             contentDescription = "",
             contentScale = ContentScale.FillBounds, // or some other scale
             modifier = Modifier
@@ -296,44 +213,6 @@ fun TitleAndAgeText(modifier: Modifier, name: String, ageText: String, @Drawable
 }
 
 @Composable
-fun TitleAndAgeText(modifier: Modifier) {
-    ConstraintLayout(modifier = modifier.fillMaxSize()) {
-        val (title, ageSquare, timeTitle) = createRefs()
-        TextTitle(
-            text = "Today Cristiano Ronaldo is",
-            fontSize = 21.sp,
-            modifier = Modifier
-                .constrainAs(title) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(ageSquare.top)
-                }
-                .padding(bottom = 13.dp, start = 50.dp, end = 50.dp)
-        )
-        AgeSquare(modifier = Modifier
-            .constrainAs(ageSquare) {
-                top.linkTo(title.bottom)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                bottom.linkTo(timeTitle.top)
-            }
-            .padding(bottom = 14.dp)
-        )
-        TextTitle(
-            text = "Month Old!",
-            fontSize = 18.sp,
-            modifier = Modifier.constrainAs(timeTitle) {
-                top.linkTo(ageSquare.bottom)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                bottom.linkTo(parent.bottom)
-            })
-            createVerticalChain(title, ageSquare, timeTitle, chainStyle = ChainStyle.Packed)
-    }
-}
-
-@Composable
 fun BabyImageWithCameraAt45Angle(modifier: Modifier, babyImage: ImageBitmap?, @DrawableRes borderDrawableRes: Int, @DrawableRes centerDrawableRes: Int, @DrawableRes cameraDrawableRes: Int, cameraDrawableOnClick: () -> Unit) {
     Circular(
         modifier = modifier,
@@ -379,32 +258,6 @@ fun BabyImageWithCameraAt45Angle(modifier: Modifier, babyImage: ImageBitmap?, @D
 }
 
 @Composable
-fun BabyImageWithCameraAt45Angle(modifier: Modifier) {
-    Circular(
-        modifier = modifier,
-        overrideRadius = null,
-        startAngle = { 45f },
-        center = {
-            Image(
-                painterResource(id = R.drawable.blue_baby_circle),
-                contentDescription = "",
-                contentScale = ContentScale.FillBounds, // or some other scale
-                modifier = Modifier
-                    .height(IntrinsicSize.Max)
-                    .width(IntrinsicSize.Max)
-            )
-        }
-    ) {
-        Image(
-            painterResource(id = R.drawable.blue_camera),
-            contentDescription = "",
-            contentScale = ContentScale.FillBounds, // or some other scale
-            modifier = Modifier.clickable { Log.d("Camera", "Clicked on the camera button") }
-        )
-    }
-}
-
-@Composable
 fun Circular(
     modifier: Modifier = Modifier,
     overrideRadius: (() -> Dp)? = null,
@@ -426,7 +279,8 @@ fun Circular(
 @Composable
 fun HappyBirthdayPreview() {
     val navController = rememberNavController()
+    val viewModel = BirthdayViewModel(repository = BirthdayRepositoryImpl(WebSocketClient()), imageRepository = BabyImageRepositoryImpl(LocalContext.current), navigator = Navigator())
     HappyBirthdayTheme {
-        HappyBirthdayConstraintLayoutFinal(navController)
+        HappyBirthday(navController, viewModel = viewModel)
     }
 }
