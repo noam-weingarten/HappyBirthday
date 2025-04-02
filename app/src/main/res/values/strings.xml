@@ -11,4 +11,5 @@
     <string name="use_gallery">Use Gallery</string>
     <string name="selected_picture">Selected Picture</string>
     <string name="looks_good">Looks good!</string>
+    <string name="connecting">attempting to connect to the server</string>
 </resources>

@@ -10,64 +10,6 @@ import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
 
-//internal fun circularMeasurePolicy(
-//    overrideRadius: (() -> Dp)?,
-//    startAngle: () -> Float,
-//    spanAngle: Float
-//) = MultiContentMeasurePolicy { (centerMeasurables: List<Measurable>,
-//                                    contentMeasurables: List<Measurable>),
-//                                constraints: Constraints
-//    ->
-//require(centerMeasurables.size == 1) { "Center composable can have only one child" }
-//
-//// Measure children with modified constraints
-//val modifiedConstraints = constraints.copy(
-//    minWidth = 0,
-//    minHeight = 0,
-//)
-//val centerPlaceable: Placeable = centerMeasurables.first().measure(modifiedConstraints)
-//val contentPlaceables: List<Placeable> = contentMeasurables.map { it.measure(modifiedConstraints) }
-//
-//// Calculate the overall radius and layout size
-//val overallRadius = overrideRadius?.invoke()?.roundToPx() ?: (centerPlaceable.height / 2)
-//val maxExtraRadius = contentPlaceables.mapNotNull { placeable ->
-//    (placeable.parentData as? CircularParentData)?.extraRadius?.roundToPx()
-//}.maxOrNull() ?: 0
-//val totalRadius = overallRadius + maxExtraRadius
-//val biggestChildSize = contentPlaceables.maxOfOrNull { it.height } ?: 0
-//val centerSize = centerPlaceable.height
-//val layoutSize = max(centerSize, 2 * totalRadius + biggestChildSize)
-//
-//layout(layoutSize, layoutSize) {
-//    // Place the center and content children in the circular layout
-//    val middle = layoutSize / 2
-//    var angle = startAngle()
-//
-//    // Adjust the angle increment based on the clockwise direction
-//    val angleIncrement = if (contentPlaceables.size > 1) {
-//        spanAngle / (contentPlaceables.size - 1)
-//    } else {
-//        0f
-//    }
-//
-//    contentPlaceables.forEachIndexed { index, placeable ->
-//        val finalAngle = (placeable.parentData as? CircularParentData)?.exactAngle ?: angle
-//        val angleRadian = finalAngle.toRadians()
-//        val radius =
-//            overallRadius + ((placeable.parentData as? CircularParentData)?.extraRadius?.roundToPx()
-//                ?: 0)
-//        placeable.place(
-//            x = (middle + radius * sin(angleRadian) - placeable.height / 2).toInt(),
-//            y = (middle - radius * cos(angleRadian) - placeable.height / 2).toInt(),
-//        )
-//        if (index < contentPlaceables.size - 1) {
-//            angle += angleIncrement
-//        }
-//    }
-//    centerPlaceable.place(middle - centerSize / 2, middle - centerSize / 2)
-//}
-//}
-
 internal fun circularMeasurePolicy(
     overrideRadius: (() -> Dp)?,
     startAngle: () -> Float

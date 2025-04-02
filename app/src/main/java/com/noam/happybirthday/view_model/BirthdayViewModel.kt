@@ -41,6 +41,10 @@ class BirthdayViewModel(private val repository: BirthdayRepository, private val 
 
             repository.latestBirthdayWish.distinctUntilChanged().collect { it ->
                 Log.d("TAG", "connectToServer: just collected the next birthday wish = $it")
+//                while (it.dob.years > 12) {
+//                    Log.d("Ages", "the birthday wish is too old (${it.dob.years} > 12), so we are going to subtract 1 year from it")
+//                    it.dob.minusYears(1)
+//                }
                 val dateOfBirthData = if (it.dob.years > 0) {
                     DateOfBirthData(
                         ageTextType = if (it.dob.years == 1) AgeTextType.YEAR else AgeTextType.YEARS,

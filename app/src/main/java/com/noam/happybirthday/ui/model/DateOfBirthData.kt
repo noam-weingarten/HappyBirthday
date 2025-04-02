@@ -23,7 +23,7 @@ data class DateOfBirthData(
                 10 -> R.drawable.age_10
                 11 -> R.drawable.age_11
                 12 -> R.drawable.age_12
-                else -> R.drawable.age_1
+                else -> R.drawable.age_9 // assuming 9 will be the greatest age in years, if we receive a number greater than 12 will display only 9
             }
         }
     }}

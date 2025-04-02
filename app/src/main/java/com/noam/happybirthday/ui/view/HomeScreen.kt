@@ -138,5 +138,15 @@ fun IpInput(
         {
             Text(stringResource(R.string.connect))
         }
+//        if (connectionState == ConnectionState.CONNECTING) {
+//            Text(
+//                text = stringResource(R.string.connecting),
+//                modifier = Modifier
+//                    .fillMaxWidth().align(Alignment.CenterHorizontally)
+//                    .wrapContentHeight()
+//                    .padding(16.dp),
+//                color = Color.Gray
+//            )
+//        }
     }
 }
