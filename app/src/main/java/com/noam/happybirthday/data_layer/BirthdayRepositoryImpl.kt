@@ -93,7 +93,7 @@ class BirthdayRepositoryImpl(private val webSocketClient: WebSocketClient) : Bir
     }
 
     override fun disconnectFromServer() {
-        unregisterListener(eventsListener)
         webSocketClient.disconnect()
+        unregisterListener(eventsListener)
     }
 }
