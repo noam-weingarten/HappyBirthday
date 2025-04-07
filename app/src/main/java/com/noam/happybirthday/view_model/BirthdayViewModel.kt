@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class BirthdayViewModel(private val repository: BirthdayRepository, private val imageRepository: BabyImageRepository, private val navigator: Navigator) : ViewModel() {
@@ -27,10 +28,16 @@ class BirthdayViewModel(private val repository: BirthdayRepository, private val 
         get() = _connectionState
 
     private val _uiState = MutableStateFlow(BirthdayUiState())
-    val uiState : StateFlow<BirthdayUiState> = _uiState.asStateFlow()
+    val uiState : StateFlow<BirthdayUiState>
+        get() =  _uiState.asStateFlow()
 
     private val _babyImageState = MutableStateFlow(BabyImageState(null))
-    val babyImageState : StateFlow<BabyImageState> = _babyImageState.asStateFlow()
+    val babyImageState : StateFlow<BabyImageState>
+        get() =  _babyImageState.asStateFlow()
+
+    private val _showDialogErrorState = MutableStateFlow( false)
+    val showDialogErrorState: StateFlow<Boolean>
+        get() = _showDialogErrorState.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -51,7 +58,7 @@ class BirthdayViewModel(private val repository: BirthdayRepository, private val 
                     is WebSocketListenerEvent.Disconnected -> { _connectionState.value = ConnectionState.DISCONNECTED }
                     is WebSocketListenerEvent.Error -> {
                         _connectionState.value = ConnectionState.ERROR
-
+                        onShowDialog()
                     }
                     is WebSocketListenerEvent.MessageReceived -> {
                         val birthdayWish = event.birthdayWish
@@ -81,6 +88,16 @@ class BirthdayViewModel(private val repository: BirthdayRepository, private val 
 
             }
         }
+    }
+
+    // call this when you want to show the dialog
+    private fun onShowDialog() {
+        _showDialogErrorState.update { true }
+    }
+
+    fun onDismiss() {
+        _showDialogErrorState.update { false }
+        _connectionState.value = ConnectionState.DISCONNECTED
     }
 
     override fun onCleared() {

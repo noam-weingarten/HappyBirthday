@@ -48,10 +48,8 @@ import com.noam.happybirthday.view_model.BirthdayViewModel
 @Composable
 fun HomeScreen(setUpConnection: (String) -> Unit, viewModel: BirthdayViewModel) {
     val connectionState by viewModel.connectionState.collectAsState()
-    val showDialog = remember { mutableStateOf(false) }
-    if (connectionState == ConnectionState.ERROR) {
-        showDialog.value = true
-    }
+    val showDialog by viewModel.showDialogErrorState.collectAsState()
+
     Scaffold(topBar = {
         TopAppBar(
             modifier = Modifier,
@@ -74,9 +72,9 @@ fun HomeScreen(setUpConnection: (String) -> Unit, viewModel: BirthdayViewModel) 
             setUpConnection = setUpConnection,
             viewModel
         )
-        if (showDialog.value) {
+        if (showDialog) {
             AlertDialog(
-                onDismissRequest = { showDialog.value = false },
+                onDismissRequest = { viewModel.onDismiss() },
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
                     .width(IntrinsicSize.Max)
@@ -86,7 +84,7 @@ fun HomeScreen(setUpConnection: (String) -> Unit, viewModel: BirthdayViewModel) 
                     .padding(16.dp)
                     .background(color = colorResource(R.color.white)),
                 properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false),
-                confirmButton = { Button(onClick = { showDialog.value = false }) { Text("OK") }},
+                confirmButton = { Button(onClick = { viewModel.onDismiss() }) { Text("OK") }},
                 dismissButton = {},
                 icon = {
                     Icon(imageVector = Icons.Default.Warning, contentDescription = "Warning Icon" )
