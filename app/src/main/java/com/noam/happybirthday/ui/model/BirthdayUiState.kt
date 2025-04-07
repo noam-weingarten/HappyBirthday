@@ -9,6 +9,5 @@ data class BirthdayUiState(
     val dateOfBirthData: DateOfBirthData = DateOfBirthData(
         ageTextType = AgeTextType.MONTH,
         numberOfAgeDrawable = R.drawable.age_1
-    ),
-    val babyImage: ImageBitmap = ImageBitmap(1, 1)
+    )
 )

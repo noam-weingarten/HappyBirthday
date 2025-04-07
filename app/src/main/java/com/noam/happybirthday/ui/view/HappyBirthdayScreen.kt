@@ -58,12 +58,7 @@ import com.noam.happybirthday.view_model.BirthdayViewModel
 @Composable
 fun HappyBirthday(navController: NavController, viewModel: BirthdayViewModel) {
     val birthdayUiState by viewModel.uiState.collectAsState()
-    val bitmap = remember {
-        mutableStateOf<ImageBitmap?>(null)
-    }
-    if (birthdayUiState.babyImage.height > 1 && birthdayUiState.babyImage.width > 1) {
-        bitmap.value = birthdayUiState.babyImage
-    }
+    val babyImageState by viewModel.babyImageState.collectAsState()
 
     Scaffold(modifier = Modifier
         .fillMaxSize()) { innerPadding ->
@@ -89,7 +84,7 @@ fun HappyBirthday(navController: NavController, viewModel: BirthdayViewModel) {
                     end.linkTo(parent.end, margin = 50.dp)
                     bottom.linkTo(logo.top, margin = 15.dp)
                 },
-                babyImage = bitmap.value,
+                babyImage = babyImageState.image,
                 borderDrawableRes = birthdayUiState.themeData.babyCircleBorderDrawable,
                 centerDrawableRes = birthdayUiState.themeData.babyCircleDrawable,
                 cameraDrawableRes = birthdayUiState.themeData.cameraDrawable,

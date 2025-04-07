@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.noam.happybirthday.data_layer.BabyImageRepository
 import com.noam.happybirthday.data_layer.BirthdayRepository
 import com.noam.happybirthday.ui.model.AgeTextType
+import com.noam.happybirthday.ui.model.BabyImageState
 import com.noam.happybirthday.ui.model.BirthdayUiState
 import com.noam.happybirthday.ui.model.DateOfBirthData
 import com.noam.happybirthday.ui.model.HappyBirthdayThemeData
@@ -25,12 +26,15 @@ class BirthdayViewModel(private val repository: BirthdayRepository, private val 
     private val _uiState = MutableStateFlow(BirthdayUiState())
     val uiState : StateFlow<BirthdayUiState> = _uiState.asStateFlow()
 
+    private val _babyImageState = MutableStateFlow(BabyImageState(null))
+    val babyImageState : StateFlow<BabyImageState> = _babyImageState.asStateFlow()
+
     init {
         viewModelScope.launch {
             imageRepository.latestBabyImageFlow.collect { babyImage ->
                 Log.d("TAG", "connectToServer: just collected the next baby image = $babyImage")
-                val uiState = _uiState.value.copy(babyImage = babyImage)
-                _uiState.emit(uiState)
+                val babyImageState = _babyImageState.value.copy(image = babyImage)
+                _babyImageState.emit(babyImageState)
             }
         }
     }
