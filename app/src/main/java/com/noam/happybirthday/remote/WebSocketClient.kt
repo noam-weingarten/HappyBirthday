@@ -24,7 +24,6 @@ class WebSocketClient {
     private lateinit var job : Job
     private var received = ""
     private lateinit var listener : WebSocketListener
-    private val mutex = Mutex()
     private var retryCounter = 0
     private val client = HttpClient {
         install(HttpTimeout) {
@@ -49,9 +48,7 @@ class WebSocketClient {
                 try {
                     client.wss(url) {
                         listener.onConnected()
-                        mutex.withLock {
-                            retryCounter = 0
-                        }
+                        retryCounter = 0
 
                         Log.d("Websocket", "connect: sending the happyBirthday frame")
                         outgoing.trySend(Frame.Text(SERVER_MESSAGE_STARTER))
@@ -82,7 +79,6 @@ class WebSocketClient {
                 Log.d("WebSocketClient", "WebSocket connection closed, reconnecting...")
             }
             Log.d("WebSocketClient", "WebSocket connection closed cancelling job")
-            job.cancel()
             listener.onDisconnected()
         }
     }
@@ -91,19 +87,14 @@ class WebSocketClient {
         job.cancel()
         CoroutineScope(Dispatchers.Default).launch {
             if (retryCounter < 3) {
-                mutex.withLock {
-                    retryCounter++
-                    Log.d("WebSocketClient", "Retrying connection... Attempt: $retryCounter")
-                }
+                retryCounter++
                 listener.onConnecting()
                 delay(2000)
                 connect()
             } else {
                 Log.d("WebSocketClient", "Max retry attempts reached. Not reconnecting.")
                 listener.onError(Exception("Max retry attempts reached"))
-                mutex.withLock {
-                    retryCounter = 0
-                }
+                retryCounter = 0
             }
         }
     }
