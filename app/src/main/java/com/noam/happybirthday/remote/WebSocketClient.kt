@@ -15,8 +15,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 class WebSocketClient {
 
@@ -40,8 +38,9 @@ class WebSocketClient {
         this.url = "ws://$ipAddress/nanit"
     }
 
-    fun connect() {
+    fun connect(eventsListener: WebSocketListener) {
         Log.d("WebSocketClient", "connect: $url")
+        this.listener = eventsListener
         listener.onConnecting()
         job = CoroutineScope(Dispatchers.Default).launch {
             while (isActive) {
@@ -90,7 +89,7 @@ class WebSocketClient {
                 retryCounter++
                 listener.onConnecting()
                 delay(2000)
-                connect()
+                connect(listener)
             } else {
                 Log.d("WebSocketClient", "Max retry attempts reached. Not reconnecting.")
                 listener.onError(Exception("Max retry attempts reached"))
@@ -102,10 +101,6 @@ class WebSocketClient {
     fun disconnect() {
         client.close()
         job.cancel()
-    }
-
-    fun setListener(listener: WebSocketListener) {
-        this.listener = listener
     }
 
     fun unregisterListener(listener: WebSocketListener) {

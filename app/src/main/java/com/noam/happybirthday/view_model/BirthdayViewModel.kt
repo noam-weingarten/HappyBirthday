@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.noam.happybirthday.data_layer.BabyImageRepository
 import com.noam.happybirthday.data_layer.BirthdayRepository
+import com.noam.happybirthday.remote.WebSocketListenerEvent
 import com.noam.happybirthday.ui.model.AgeTextType
 import com.noam.happybirthday.ui.model.BabyImageState
 import com.noam.happybirthday.ui.model.BirthdayUiState
@@ -21,7 +22,9 @@ import kotlinx.coroutines.launch
 
 class BirthdayViewModel(private val repository: BirthdayRepository, private val imageRepository: BabyImageRepository, private val navigator: Navigator) : ViewModel() {
 
-    var connectionState : StateFlow<ConnectionState> = repository.connectionState
+    private val _connectionState: MutableStateFlow<ConnectionState> = MutableStateFlow(ConnectionState.DISCONNECTED)
+    val connectionState: StateFlow<ConnectionState>
+        get() = _connectionState
 
     private val _uiState = MutableStateFlow(BirthdayUiState())
     val uiState : StateFlow<BirthdayUiState> = _uiState.asStateFlow()
@@ -41,30 +44,41 @@ class BirthdayViewModel(private val repository: BirthdayRepository, private val 
 
     fun connectToServer(ipAddress: String) {
         viewModelScope.launch {
-            repository.connectToServer(ipAddress)
+            repository.webSocketFlow(ipAddress).distinctUntilChanged().collect { event ->
+                when(event) {
+                    is WebSocketListenerEvent.Connecting -> { _connectionState.value = ConnectionState.CONNECTING }
+                    is WebSocketListenerEvent.Connected -> { _connectionState.value = ConnectionState.CONNECTED }
+                    is WebSocketListenerEvent.Disconnected -> { _connectionState.value = ConnectionState.DISCONNECTED }
+                    is WebSocketListenerEvent.Error -> {
+                        _connectionState.value = ConnectionState.ERROR
 
-            repository.latestBirthdayWish.distinctUntilChanged().collect { it ->
-                Log.d("TAG", "connectToServer: just collected the next birthday wish = $it")
-//                while (it.dob.years > 12) {
-//                    Log.d("Ages", "the birthday wish is too old (${it.dob.years} > 12), so we are going to subtract 1 year from it")
-//                    it.dob.minusYears(1)
-//                }
-                val dateOfBirthData = if (it.dob.years > 0) {
-                    DateOfBirthData(
-                        ageTextType = if (it.dob.years == 1) AgeTextType.YEAR else AgeTextType.YEARS,
-                        numberOfAgeDrawable = DateOfBirthData.getAgeDrawable(it.dob.years)
-                    )
-                } else {
-                    DateOfBirthData(
-                        ageTextType = if (it.dob.months == 1) AgeTextType.MONTH else AgeTextType.MONTHS,
-                        numberOfAgeDrawable = DateOfBirthData.getAgeDrawable(it.dob.months)
-                    )
+                    }
+                    is WebSocketListenerEvent.MessageReceived -> {
+                        val birthdayWish = event.birthdayWish
+                        Log.d("TAG", "connectToServer: just collected the next birthday wish = $birthdayWish")
+//                        while (birthdayWish.dob.years > 12) {
+//                            Log.d("Ages", "the birthday wish is too old (${birthdayWish.dob.years} > 12), so we are going to subtract 1 year from it")
+//                            birthdayWish.dob.minusYears(1)
+//                        }
+                        val dateOfBirthData = if (birthdayWish.dob.years > 0) {
+                            DateOfBirthData(
+                                ageTextType = if (birthdayWish.dob.years == 1) AgeTextType.YEAR else AgeTextType.YEARS,
+                                numberOfAgeDrawable = DateOfBirthData.getAgeDrawable(birthdayWish.dob.years)
+                            )
+                        } else {
+                            DateOfBirthData(
+                                ageTextType = if (birthdayWish.dob.months == 1) AgeTextType.MONTH else AgeTextType.MONTHS,
+                                numberOfAgeDrawable = DateOfBirthData.getAgeDrawable(birthdayWish.dob.months)
+                            )
+                        }
+                        val uiStateCopy = _uiState.value.copy(themeData = HappyBirthdayThemeData.getThemeObject(birthdayWish.theme), name = birthdayWish.name, dateOfBirthData = dateOfBirthData)
+                        _uiState.emit(
+                            uiStateCopy
+                        )
+                        navigator.navigate(Screens.HappyBirthday)
+                    }
                 }
-                val uiStateCopy = _uiState.value.copy(themeData = HappyBirthdayThemeData.getThemeObject(it.theme), name = it.name, dateOfBirthData = dateOfBirthData)
-                _uiState.emit(
-                    uiStateCopy
-                )
-                navigator.navigate(Screens.HappyBirthday)
+
             }
         }
     }
