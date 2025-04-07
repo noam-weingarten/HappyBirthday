@@ -7,10 +7,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import com.noam.happybirthday.utils.BABY_IMAGE_NAME
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -34,15 +31,12 @@ class BabyImageRepositoryImpl(applicationContext: Context) : BabyImageRepository
     }
 
     override suspend fun getBabyImage(): ImageBitmap {
-        val deferred : Deferred<ImageBitmap> = CoroutineScope(Dispatchers.IO).async {
-            var bitmap = ImageBitmap(1,1,)
-            val file = File(cacheDirAbsolutePath + File.separator + BABY_IMAGE_NAME)
-            if (file.exists()) {
-                bitmap = BitmapFactory.decodeFile(cacheDirAbsolutePath + File.separator + BABY_IMAGE_NAME).asImageBitmap()
-            }
-            bitmap
+        var bitmap = ImageBitmap(1,1,)
+        val file = File(cacheDirAbsolutePath + File.separator + BABY_IMAGE_NAME)
+        if (file.exists()) {
+            bitmap = BitmapFactory.decodeFile(cacheDirAbsolutePath + File.separator + BABY_IMAGE_NAME).asImageBitmap()
         }
-        return deferred.await()
+        return bitmap
     }
 
     override suspend fun saveBabyImage(imageBitmap: ImageBitmap) {
